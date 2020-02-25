@@ -6,22 +6,35 @@ $modx->initialize('mgr');
 $modx->setLogTarget('ECHO');
 $modx->setLogLevel(MODX_LOG_LEVEL_INFO);
 
-$savePath = MODX_BASE_PATH.'elements/';
+$savePath = '../elements/';
 
 if ($argc < 1){
     echo 'U r missing paramets: import -> import to files; export -> import into MODX'.PHP_EOL;
     return 0;
 }
 
+/** @return bool
+ * @var modX $modx
+ */
+function unstaticFunc($tableName,&$modx){
+    $sql = "UPDATE {$tableName} SET static = 0";
+    $q = $modx->prepare($sql);
+    if (!$q->execute()){
+        $modx->log(1,print_r($q->errorInfo(),true));
+        return false;
+    }
+    return true;
+}
+
 if ($argv[1] == 'import') {
     /** @var modTemplate[] $templates */
-    $templates = $modx->getCollection(modTemplate::class);
+    $templates = $modx->getIterator(modTemplate::class);
     /** @var modChunk[] $chunks */
-    $chunks = $modx->getCollection(modChunk::class);
+    $chunks = $modx->getIterator(modChunk::class);
     /** @var modSnippet[] $snippets */
-    $snippets = $modx->getCollection(modSnippet::class);
+    $snippets = $modx->getIterator(modSnippet::class);
     /** @var modPlugin[] $plugins */
-    $plugins = $modx->getCollection(modPlugin::class);
+    $plugins = $modx->getIterator(modPlugin::class);
 
     foreach ($templates as $template) {
         /** @var modCategory $category */
@@ -37,7 +50,7 @@ if ($argv[1] == 'import') {
             }
             $template->set('static', 1);
             $template->set('source', 1);
-            $template->set('static_file', $savePath . 'templates/' . $name);
+            $template->set('static_file', substr($savePath,3) . 'templates/' . $name);
             if ($template->save()) {
                 $modx->log(MODX_LOG_LEVEL_INFO, "Template was imported: \"{$name}\"");
             }
@@ -57,7 +70,7 @@ if ($argv[1] == 'import') {
             }
             $chunk->set('static',1);
             $chunk->set('source',1);
-            $chunk->set('static_file',$savePath.'chunks/'.$name);
+            $chunk->set('static_file',substr($savePath,3).'chunks/'.$name);
             if ($chunk->save()){
                 $modx->log(MODX_LOG_LEVEL_INFO, "Chunk was imported: \"{$name}\"");
             }
@@ -77,7 +90,7 @@ if ($argv[1] == 'import') {
             }
             $snippet->set('static',1);
             $snippet->set('source',1);
-            $snippet->set('static_file',$savePath.'snippets/'.$name);
+            $snippet->set('static_file',substr($savePath,3).'snippets/'.$name);
             if ($snippet->save()){
                 $modx->log(MODX_LOG_LEVEL_INFO, "Snippet was imported: \"{$name}\"");
             }
@@ -97,7 +110,7 @@ if ($argv[1] == 'import') {
             }
             $plugin->set('static',1);
             $plugin->set('source',1);
-            $plugin->set('static_file',$savePath.'plugins/'.$name);
+            $plugin->set('static_file',substr($savePath,3).'plugins/'.$name);
             if ($plugin->save()){
                 $modx->log(MODX_LOG_LEVEL_INFO, "Plugin was imported: \"{$name}\"");
             }
@@ -232,39 +245,15 @@ if ($argv[1] == 'export'){
 
 
 if ($argv[1] == 'deploy'){
-    $templates = $modx->getCollection(modTemplate::class);
-    $chunks = $modx->getCollection(modChunk::class);
-    $plugins = $modx->getCollection(modPlugin::class);
-    $snippets = $modx->getCollection(modSnippet::class);
+    $templates = $modx->getTableName(modTemplate::class);
+    $chunks = $modx->getTableName(modChunk::class);
+    $plugins = $modx->getTableName(modPlugin::class);
+    $snippets = $modx->getTableName(modSnippet::class);
 
-    foreach ($templates as $template){
-        if (is_object($template)){
-            $template->set('static',0);
-            $template->save();
-        }
-    }
-
-    foreach ($chunks as $chunk){
-        if (is_object($chunk)){
-            $chunk->set('static',0);
-            $chunk->save();
-        }
-    }
-
-    foreach ($plugins as $plugin){
-        if (is_object($plugin)){
-            $plugin->set('static',0);
-            $plugin->save();
-        }
-    }
-
-    foreach ($snippets as $snippet){
-        if (is_object($snippet)){
-            $snippet->set('static',0);
-            $snippet->save();
-        }
-    }
-
+    unstaticFunc($templates,$modx);
+    unstaticFunc($chunks,$modx);
+    unstaticFunc($plugins,$modx);
+    unstaticFunc($snippets,$modx);
     $modx->log(MODX_LOG_LEVEL_INFO,'Done');
 }
 
