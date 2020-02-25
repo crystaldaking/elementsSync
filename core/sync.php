@@ -8,7 +8,6 @@ $modx->setLogLevel(MODX_LOG_LEVEL_INFO);
 
 $savePath = MODX_BASE_PATH.'elements/';
 
-
 if ($argc < 1){
     echo 'U r missing paramets: import -> import to files; export -> import into MODX'.PHP_EOL;
     return 0;
@@ -107,20 +106,24 @@ if ($argv[1] == 'import') {
 }
 
 if ($argv[1] == 'export'){
-    $files = glob(MODX_BASE_PATH.'elements/templates/*.tpl');
+    $templateFiles = glob(MODX_BASE_PATH.'elements/templates/*.tpl');
+    $chunkFiles = glob(MODX_BASE_PATH.'elements/chunks/*.tpl');
+    $pluginFiles = glob(MODX_BASE_PATH.'elements/plugins/*.php');
+    $snippetFiles = glob(MODX_BASE_PATH.'elements/snippets/*.php');
+
     $firstTemplate = $modx->getObject(modTemplate::class,1);
     $indexSaveState = false;
 
-    foreach ($files as $file){
-        $content = file_get_contents($file);
+    foreach ($templateFiles as $templateFile){
+        $content = file_get_contents($templateFile);
         if (empty($content)) { continue; }
-        $name = end(explode('/',$file));
+        $name = end(explode('/',$templateFile));
         $name = trim(preg_replace('#\.tpl$#ui','',$name));
-        $relative = str_replace(MODX_BASE_PATH,'',$file);
+        $relative = str_replace(MODX_BASE_PATH,'',$templateFile);
 
         /** @var modTemplate $template */
         if ($template = $modx->getObject(modTemplate::class,[
-            'static_file' => $relative
+            'templatename' => $name
         ])){
             $modx->log(MODX_LOG_LEVEL_INFO,'Template '.$name.' is already in the database');
             continue;
@@ -144,6 +147,125 @@ if ($argv[1] == 'export'){
         }
 
     }
+    foreach ($chunkFiles as $chunkFile){
+        $content = file_get_contents($chunkFile);
+        if (empty($content)) {continue;}
+        $name = end(explode('/',$chunkFile));
+        $name = trim(preg_replace('#\.tpl$#ui','',$name));
+        $relative = str_replace(MODX_BASE_PATH,'',$chunkFile);
+
+        if ($chunk = $modx->getObject(modChunk::class,[
+            'name' => $name
+        ])){
+            $modx->log(MODX_LOG_LEVEL_INFO,'Chunk '.$name.' is already in the database');
+            continue;
+        } else {
+            $chunk = $modx->newObject(modChunk::class);
+            $chunk->set('source',1);
+            $chunk->set('name',$name);
+            $chunk->set('static',true);
+            $chunk->set('static_file',$relative);
+            if ($chunk->save()){
+                $modx->log(MODX_LOG_LEVEL_INFO,'Saved new chunk: '.$name);
+            } else {
+                $modx->log(MODX_LOG_LEVEL_ERROR, 'Can not save chunk ' . $name);
+            }
+        }
+
+
+    }
+    foreach ($snippetFiles as $snippetFile){
+        $content = file_get_contents($snippetFile);
+        if (empty($content)) {continue;}
+        $name = end(explode('/',$snippetFile));
+        $name = trim(preg_replace('#\.php$#ui','',$name));
+        $relative = str_replace(MODX_BASE_PATH,'',$snippetFile);
+
+        if ($snippet = $modx->getObject(modSnippet::class,[
+            'name' => $name
+        ])){
+            $modx->log(MODX_LOG_LEVEL_INFO,'Snippet '.$name.' is already in the database');
+            continue;
+        } else {
+            $snippet = $modx->newObject(modSnippet::class);
+            $snippet->set('source',1);
+            $snippet->set('name',$name);
+            $snippet->set('static',true);
+            $snippet->set('static_file',$relative);
+            if ($snippet->save()){
+                $modx->log(MODX_LOG_LEVEL_INFO,'Saved new snippet: '.$name);
+            } else {
+                $modx->log(MODX_LOG_LEVEL_ERROR, 'Can not save snippet ' . $name);
+            }
+        }
+
+
+    }
+    foreach ($pluginFiles as $pluginFile){
+        $content = file_get_contents($pluginFile);
+        if (empty($content)) {continue;}
+        $name = end(explode('/',$pluginFile));
+        $name = trim(preg_replace('#\.php$#ui','',$name));
+        $relative = str_replace(MODX_BASE_PATH,'',$pluginFile);
+
+        if ($plugin = $modx->getObject(modPlugin::class,[
+            'name' => $name
+        ])){
+            $modx->log(MODX_LOG_LEVEL_INFO,'Plugin '.$name.' is already in the database');
+            continue;
+        } else {
+            $plugin = $modx->newObject(modPlugin::class);
+            $plugin->set('source',1);
+            $plugin->set('name',$name);
+            $plugin->set('static',true);
+            $plugin->set('static_file',$relative);
+            if ($plugin->save()){
+                $modx->log(MODX_LOG_LEVEL_INFO,'Saved new plugin: '.$name);
+            } else {
+                $modx->log(MODX_LOG_LEVEL_ERROR, 'Can not save plugin ' . $name);
+            }
+        }
+
+    }
+
+}
+
+
+if ($argv[1] == 'deploy'){
+    $templates = $modx->getCollection(modTemplate::class);
+    $chunks = $modx->getCollection(modChunk::class);
+    $plugins = $modx->getCollection(modPlugin::class);
+    $snippets = $modx->getCollection(modSnippet::class);
+
+    foreach ($templates as $template){
+        if (is_object($template)){
+            $template->set('static',0);
+            $template->save();
+        }
+    }
+
+    foreach ($chunks as $chunk){
+        if (is_object($chunk)){
+            $chunk->set('static',0);
+            $chunk->save();
+        }
+    }
+
+    foreach ($plugins as $plugin){
+        if (is_object($plugin)){
+            $plugin->set('static',0);
+            $plugin->save();
+        }
+    }
+
+    foreach ($snippets as $snippet){
+        if (is_object($snippet)){
+            $snippet->set('static',0);
+            $snippet->save();
+        }
+    }
+
+    $modx->log(MODX_LOG_LEVEL_INFO,'Done');
 }
 
 $cache = $modx->getCacheManager();
