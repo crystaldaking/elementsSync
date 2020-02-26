@@ -119,22 +119,22 @@ if ($argv[1] == 'import') {
                 if (!is_dir($savePath.'chunks/'.$source['category'])){
                     mkdir($savePath.'chunks/'.$source['category']);
                 }
+
                 if (file_put_contents($savePath . 'chunks/' .$source['category'].'/'. $name, $content) === false) {
                     $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving chunk into file: \"{$name}\"");
                     continue;
                 }
+                $chunk->set('static_file',substr($savePath,3).'chunks/' .$source['category'].'/'. $name);
             } else{
                 if (file_put_contents($savePath . 'chunks/' . $name, $content) === false) {
                     $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving chunk into file: \"{$name}\"");
                     continue;
                 }
+                $chunk->set('static_file',substr($savePath,3).'chunks/'.$name);
             }
-
-
 
             $chunk->set('static',1);
             $chunk->set('source',1);
-            $chunk->set('static_file',substr($savePath,3).'chunks/'.$name);
             if ($chunk->save()){
                 $modx->log(MODX_LOG_LEVEL_INFO, "Chunk was imported: \"{$name}\"");
             }
@@ -163,17 +163,19 @@ if ($argv[1] == 'import') {
                     $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving snippet into file: \"{$name}\"");
                     continue;
                 }
+                $snippet->set('static_file',substr($savePath,3).'snippets/' .$source['category'].'/'. $name);
             }
             else {
                 if (file_put_contents($savePath . 'snippets/' . $name, $content) === false) {
                     $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving snippet into file: \"{$name}\"");
                     continue;
                 }
+                $snippet->set('static_file',substr($savePath,3).'snippets/'.$name);
             }
 
             $snippet->set('static',1);
             $snippet->set('source',1);
-            $snippet->set('static_file',substr($savePath,3).'snippets/'.$name);
+
             if ($snippet->save()){
                 $modx->log(MODX_LOG_LEVEL_INFO, "Snippet was imported: \"{$name}\"");
             }
@@ -201,17 +203,19 @@ if ($argv[1] == 'import') {
                     $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving plugin into file: \"{$name}\"");
                     continue;
                 }
+                $plugin->set('static_file',substr($savePath,3).'plugins/' .$source['category'].'/'. $name);
             }
             else {
                 if (file_put_contents($savePath . 'plugins/' . $name, $content) === false) {
                     $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving plugin into file: \"{$name}\"");
                     continue;
                 }
+                $plugin->set('static_file',substr($savePath,3).'plugins/'.$name);
             }
 
             $plugin->set('static',1);
             $plugin->set('source',1);
-            $plugin->set('static_file',substr($savePath,3).'plugins/'.$name);
+
             if ($plugin->save()){
                 $modx->log(MODX_LOG_LEVEL_INFO, "Plugin was imported: \"{$name}\"");
             }
