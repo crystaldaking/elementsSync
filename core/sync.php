@@ -26,6 +26,34 @@ function unstaticFunc($tableName,&$modx){
     return true;
 }
 
+/**
+ * Translitiration filenames
+ * @param string $fileName
+ * @return string
+ */
+function translitFileName ($fileName)
+{
+    $charList = array(
+        "А"=>"a","Б"=>"b","В"=>"v","Г"=>"g",
+        "Д"=>"d","Е"=>"e","Ё"=>"e","Ж"=>"j","З"=>"z","И"=>"i",
+        "Й"=>"y","К"=>"k","Л"=>"l","М"=>"m","Н"=>"n",
+        "О"=>"o","П"=>"p","Р"=>"r","С"=>"s","Т"=>"t",
+        "У"=>"u","Ф"=>"f","Х"=>"h","Ц"=>"ts","Ч"=>"ch",
+        "Ш"=>"sh","Щ"=>"sch","Ъ"=>"","Ы"=>"yi","Ь"=>"",
+        "Э"=>"e","Ю"=>"yu","Я"=>"ya","а"=>"a","б"=>"b",
+        "в"=>"v","г"=>"g","д"=>"d","е"=>"e","ё"=>"e","ж"=>"j",
+        "з"=>"z","и"=>"i","й"=>"y","к"=>"k","л"=>"l",
+        "м"=>"m","н"=>"n","о"=>"o","п"=>"p","р"=>"r",
+        "с"=>"s","т"=>"t","у"=>"u","ф"=>"f","х"=>"h",
+        "ц"=>"ts","ч"=>"ch","ш"=>"sh","щ"=>"sch","ъ"=>"y",
+        "ы"=>"yi","ь"=>"","э"=>"e","ю"=>"yu","я"=>"ya",
+        " -"=> "", ","=> "", " "=> "-", "/"=> "_",
+        "-"=> ""
+    );
+
+    return strtr($fileName,$charList);
+}
+
 if ($argv[1] == 'import') {
     /** @var modTemplate[] $templates */
     $templates = $modx->getIterator(modTemplate::class);
@@ -44,6 +72,11 @@ if ($argv[1] == 'import') {
         if (!empty($source['content'])) {
             $content = $source['content'];
             $name = trim($source['templatename']) . '.tpl';
+
+            if (!preg_match('/^[A-z]+$/i',$name)){
+                $name = translitFileName($name);
+            }
+
             if (file_put_contents($savePath . 'templates/' . $name, $content) === false) {
                 $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving template into file: \"{$name}\"");
                 continue;
@@ -64,6 +97,11 @@ if ($argv[1] == 'import') {
         if (!empty($source['content'])){
             $content = $source['content'];
             $name = trim($source['name']) . '.tpl';
+
+            if (!preg_match('/^[A-z]+$/i',$name)){
+                $name = translitFileName($name);
+            }
+
             if (file_put_contents($savePath . 'chunks/' . $name, $content) === false) {
                 $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving chunk into file: \"{$name}\"");
                 continue;
@@ -84,6 +122,11 @@ if ($argv[1] == 'import') {
         if (!empty($source['content'])){
             $content = $source['content'];
             $name = trim($source['name']) . '.php';
+
+            if (!preg_match('/^[A-z]+$/i',$name)){
+                $name = translitFileName($name);
+            }
+
             if (file_put_contents($savePath . 'snippets/' . $name, $content) === false) {
                 $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving snippet into file: \"{$name}\"");
                 continue;
@@ -104,6 +147,11 @@ if ($argv[1] == 'import') {
         if (!empty($source['content'])){
             $content = $source['plugincode'];
             $name = trim($source['name']) . '.php';
+
+            if (!preg_match('/^[A-z]+$/i',$name)){
+                $name = translitFileName($name);
+            }
+
             if (file_put_contents($savePath . 'plugins/' . $name, $content) === false) {
                 $modx->log(MODX_LOG_LEVEL_ERROR, "Error while saving plugin into file: \"{$name}\"");
                 continue;
@@ -254,6 +302,7 @@ if ($argv[1] == 'deploy'){
     unstaticFunc($chunks,$modx);
     unstaticFunc($plugins,$modx);
     unstaticFunc($snippets,$modx);
+
     $modx->log(MODX_LOG_LEVEL_INFO,'Done');
 }
 
