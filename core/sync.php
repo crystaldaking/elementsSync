@@ -26,6 +26,14 @@ function unstaticFunc($tableName,&$modx){
     return true;
 }
 
+function rglob($pattern, $flags = 0) {
+    $files = glob($pattern, $flags);
+    foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+        $files = array_merge($files, rglob($dir.'/'.basename($pattern), $flags));
+    }
+    return $files;
+}
+
 if ($argv[1] == 'import') {
     /** @var modTemplate[] $templates */
     $templates = $modx->getIterator(modTemplate::class);
@@ -179,10 +187,10 @@ if ($argv[1] == 'import') {
 }
 
 if ($argv[1] == 'export'){
-    $templateFiles = glob(MODX_BASE_PATH.'elements/templates/*.tpl');
-    $chunkFiles = glob(MODX_BASE_PATH.'elements/chunks/*.tpl');
-    $pluginFiles = glob(MODX_BASE_PATH.'elements/plugins/*.php');
-    $snippetFiles = glob(MODX_BASE_PATH.'elements/snippets/*.php');
+    $templateFiles = rglob(MODX_BASE_PATH.'elements/templates/*.tpl');
+    $chunkFiles = rglob(MODX_BASE_PATH.'elements/chunks/*.tpl');
+    $pluginFiles = rglob(MODX_BASE_PATH.'elements/plugins/*.php');
+    $snippetFiles = rglob(MODX_BASE_PATH.'elements/snippets/*.php');
 
     $firstTemplate = $modx->getObject(modTemplate::class,1);
     $indexSaveState = false;
