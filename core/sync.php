@@ -13,6 +13,7 @@ if ($argc < 1){
     return 0;
 }
 
+
 /** @return bool
  * @var modX $modx
  */
@@ -284,6 +285,16 @@ if ($argv[1] == 'export'){
     foreach ($pluginFiles as $pluginFile){
         $content = file_get_contents($pluginFile);
         if (empty($content)) {continue;}
+        $pluginEvent = file($pluginFile)[0];
+
+        if (strlen($pluginEvent) > 0) {
+            if ($pluginEvent[0] == '#'){
+                $pluginEvent = str_replace("#","",$pluginEvent);
+            }
+        }
+        unset(file($pluginFile)[0]);
+        file_put_contents($pluginFile,implode('',file($pluginFile)));
+
         $name = end(explode('/',$pluginFile));
         $name = trim(preg_replace('#\.php$#ui','',$name));
         $relative = str_replace(MODX_BASE_PATH,'',$pluginFile);
@@ -300,6 +311,14 @@ if ($argv[1] == 'export'){
             $plugin->set('static',true);
             $plugin->set('static_file',$relative);
             if ($plugin->save()){
+                $event = $modx->newObject(modPluginEvent::class);
+                $event->set('pluginid',$plugin->get('id'));
+                $event->set('priority',0);
+                $event->set('propertyset',0);
+                $event->set('event',$pluginEvent);
+                if (!$event->save()){
+                    $modx->log(MODX_LOG_LEVEL_ERROR, 'Can not save event plugin ' . $name);
+                }
                 $modx->log(MODX_LOG_LEVEL_INFO,'Saved new plugin: '.$name);
             } else {
                 $modx->log(MODX_LOG_LEVEL_ERROR, 'Can not save plugin ' . $name);
