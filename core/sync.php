@@ -14,19 +14,13 @@ if ($argc < 1) {
     return 0;
 }
 
-
-/** @return bool
- * @var modX $modx
- */
-function unstaticFunc($tableName, &$modx)
-{
-    $sql = "UPDATE {$tableName} SET static = 0";
-    $q = $modx->prepare($sql);
-    if (!$q->execute()) {
-        $modx->log(1, print_r($q->errorInfo(), true));
-        return false;
+function unlink($collection){
+    foreach ($collection as $element){
+        if (is_object($element)){
+            $element->set('static',0);
+            $element->save();
+        }
     }
-    return true;
 }
 
 function rglob($pattern, $flags = 0)
@@ -344,15 +338,15 @@ if ($argv[1] == 'export') {
 }
 
 if ($argv[1] == 'deploy') {
-    $templates = $modx->getTableName(modTemplate::class);
-    $chunks = $modx->getTableName(modChunk::class);
-    $plugins = $modx->getTableName(modPlugin::class);
-    $snippets = $modx->getTableName(modSnippet::class);
+    $templates = $modx->getIterator(modTemplate::class);
+    $chunks = $modx->getIterator(modChunk::class);
+    $plugins = $modx->getIterator(modPlugin::class);
+    $snippets = $modx->getIterator(modSnippet::class);
 
-    unstaticFunc($templates, $modx);
-    unstaticFunc($chunks, $modx);
-    unstaticFunc($plugins, $modx);
-    unstaticFunc($snippets, $modx);
+    unlink($templates);
+    unlink($chunks);
+    unlink($plugins);
+    unlink($snippets);
 
     $modx->log(MODX_LOG_LEVEL_INFO, 'Done');
 }
