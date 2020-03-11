@@ -14,7 +14,7 @@ if ($argc < 1) {
     return 0;
 }
 
-function unlink($collection){
+function unlinkElement($collection){
     foreach ($collection as $element){
         if (is_object($element)){
             $element->set('static',0);
@@ -35,7 +35,7 @@ function rglob($pattern, $flags = 0)
 function createWorkspace($path) {
     if (!is_dir($path)) {
         if (!mkdir($path)){
-           return false;
+            return false;
         }
         if (!mkdir($path.'plugins/')){
             return false;
@@ -59,13 +59,13 @@ if ($argv[1] == 'import') {
         return false;
     }
     /** @var modTemplate[] $templates */
-    $templates = $modx->getIterator(modTemplate::class);
+    $templates = $modx->getIterator('modTemplate');
     /** @var modChunk[] $chunks */
-    $chunks = $modx->getIterator(modChunk::class);
+    $chunks = $modx->getIterator('modChunk');
     /** @var modSnippet[] $snippets */
-    $snippets = $modx->getIterator(modSnippet::class);
+    $snippets = $modx->getIterator('modSnippet');
     /** @var modPlugin[] $plugins */
-    $plugins = $modx->getIterator(modPlugin::class);
+    $plugins = $modx->getIterator('modPlugin');
 
     foreach ($templates as $template) {
         /** @var modCategory $category */
@@ -213,7 +213,7 @@ if ($argv[1] == 'export') {
     $pluginFiles = rglob(MODX_BASE_PATH . 'elements/plugins/*.php');
     $snippetFiles = rglob(MODX_BASE_PATH . 'elements/snippets/*.php');
 
-    $firstTemplate = $modx->getObject(modTemplate::class, 1);
+    $firstTemplate = $modx->getObject('modTemplate', 1);
     $indexSaveState = false;
 
     foreach ($templateFiles as $templateFile) {
@@ -226,7 +226,7 @@ if ($argv[1] == 'export') {
         $relative = str_replace(MODX_BASE_PATH, '', $templateFile);
 
         /** @var modTemplate $template */
-        if ($template = $modx->getObject(modTemplate::class, [
+        if ($template = $modx->getObject('modTemplate', [
             'templatename' => $name
         ])) {
             $modx->log(MODX_LOG_LEVEL_INFO, 'Template ' . $name . ' is already in the database');
@@ -237,7 +237,7 @@ if ($argv[1] == 'export') {
             $template = &$firstTemplate;
             $indexSaveState = true;
         } else {
-            $template = $modx->newObject(modTemplate::class);
+            $template = $modx->newObject('modTemplate');
             $template->set('source', 1);
             $template->set('templatename', $name);
             $template->set('static', true);
@@ -259,13 +259,13 @@ if ($argv[1] == 'export') {
         $name = trim(preg_replace('#\.tpl$#ui', '', $name));
         $relative = str_replace(MODX_BASE_PATH, '', $chunkFile);
 
-        if ($chunk = $modx->getObject(modChunk::class, [
+        if ($chunk = $modx->getObject('modChunk', [
             'name' => $name
         ])) {
             $modx->log(MODX_LOG_LEVEL_INFO, 'Chunk ' . $name . ' is already in the database');
             continue;
         } else {
-            $chunk = $modx->newObject(modChunk::class);
+            $chunk = $modx->newObject('modChunk');
             $chunk->set('source', 1);
             $chunk->set('name', $name);
             $chunk->set('static', true);
@@ -288,13 +288,13 @@ if ($argv[1] == 'export') {
         $name = trim(preg_replace('#\.php$#ui', '', $name));
         $relative = str_replace(MODX_BASE_PATH, '', $snippetFile);
 
-        if ($snippet = $modx->getObject(modSnippet::class, [
+        if ($snippet = $modx->getObject('modSnippet', [
             'name' => $name
         ])) {
             $modx->log(MODX_LOG_LEVEL_INFO, 'Snippet ' . $name . ' is already in the database');
             continue;
         } else {
-            $snippet = $modx->newObject(modSnippet::class);
+            $snippet = $modx->newObject('modSnippet');
             $snippet->set('source', 1);
             $snippet->set('name', $name);
             $snippet->set('static', true);
@@ -317,13 +317,13 @@ if ($argv[1] == 'export') {
         $name = trim(preg_replace('#\.php$#ui', '', $name));
         $relative = str_replace(MODX_BASE_PATH, '', $pluginFile);
 
-        if ($plugin = $modx->getObject(modPlugin::class, [
+        if ($plugin = $modx->getObject('modPlugin', [
             'name' => $name
         ])) {
             $modx->log(MODX_LOG_LEVEL_INFO, 'Plugin ' . $name . ' is already in the database');
             continue;
         } else {
-            $plugin = $modx->newObject(modPlugin::class);
+            $plugin = $modx->newObject('modPlugin');
             $plugin->set('source', 1);
             $plugin->set('name', $name);
             $plugin->set('static', true);
@@ -338,15 +338,15 @@ if ($argv[1] == 'export') {
 }
 
 if ($argv[1] == 'deploy') {
-    $templates = $modx->getIterator(modTemplate::class);
-    $chunks = $modx->getIterator(modChunk::class);
-    $plugins = $modx->getIterator(modPlugin::class);
-    $snippets = $modx->getIterator(modSnippet::class);
+    $templates = $modx->getIterator('modTemplate');
+    $chunks = $modx->getIterator('modChunk');
+    $plugins = $modx->getIterator('modPlugin');
+    $snippets = $modx->getIterator('modSnippet');
 
-    unlink($templates);
-    unlink($chunks);
-    unlink($plugins);
-    unlink($snippets);
+    unlinkElement($templates);
+    unlinkElement($chunks);
+    unlinkElement($plugins);
+    unlinkElement($snippets);
 
     $modx->log(MODX_LOG_LEVEL_INFO, 'Done');
 }
